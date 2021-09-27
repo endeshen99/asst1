@@ -77,14 +77,14 @@ void mandelbrotSerial(
     float dx = (x1 - x0) / width;
     float dy = (y1 - y0) / height;
 
-    int endRow = startRow + totalRows;
+    int offset = startRow / totalRows;
+    int stride = height / totalRows;
 
-    for (int j = startRow; j < endRow; j++) {
+    for (int j = 0; j < totalRows; j++) {
         for (int i = 0; i < width; ++i) {
             float x = x0 + i * dx;
-            float y = y0 + j * dy;
-
-            int index = (j * width + i);
+            float y = y0 + (offset + j * stride) * dy;
+            int index = (offset + j * stride) * width + i;
             output[index] = mandel(x, y, maxIterations);
         }
     }
