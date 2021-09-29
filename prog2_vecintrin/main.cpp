@@ -253,19 +253,18 @@ void clampedExpVector(float* values, int* exponents, float* output, int N) {
   __cs149_vec_float x;
   __cs149_vec_int y;
   __cs149_vec_float result;
-  __cs149_vec_float zero_float = _cs149_vset_float(0.f);
   __cs149_vec_float one_float = _cs149_vset_float(1.f);
   __cs149_vec_float clamp_float = _cs149_vset_float(9.999999f);
   __cs149_vec_int zero_integer = _cs149_vset_int(0);
   __cs149_vec_int one_integer = _cs149_vset_int(1);
   __cs149_vec_int count = _cs149_vset_int(0);
 
-  __cs149_mask maskAll, maskIsZero, maskIsNotZero, maskCountPositive, maskNeedClamp;
+  __cs149_mask maskAll, maskIsZero, maskIsNotZero, maskCountPositive, maskNeedClamp, maskValueExpo;
 
   for (int i=0; i<N; i+=VECTOR_WIDTH) {
 
-    maskAll = _cs149_init_ones();
-    maskIsZero = _cs149_init_ones(0);
+    maskAll = _cs149_init_ones(N - i);
+    maskIsZero = _cs149_init_ones(N - i);
 
     _cs149_vload_float(x, values+i, maskAll);
     _cs149_vload_int(y, exponents+i, maskAll);
@@ -285,7 +284,8 @@ void clampedExpVector(float* values, int* exponents, float* output, int N) {
     _cs149_vgt_float(maskNeedClamp, result, clamp_float, maskAll);
     _cs149_vset_float(result, 9.999999f, maskNeedClamp);
 
-    _cs149_vstore_float(output+i, result, maskAll);
+    maskValueExpo = _cs149_mask_and(maskAll, maskIsNotZero);
+    _cs149_vstore_float(output+i, result, maskValueExpo);
   }
 }
 
