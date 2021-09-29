@@ -250,6 +250,43 @@ void clampedExpVector(float* values, int* exponents, float* output, int N) {
   // N and VECTOR_WIDTH, not just when VECTOR_WIDTH divides N
   //
   
+  __cs149_vec_float x;
+  __cs149_vec_int y;
+  __cs149_vec_float result;
+  __cs149_vec_float zero_float = _cs149_vset_float(0.f);
+  __cs149_vec_float one_float = _cs149_vset_float(1.f);
+  __cs149_vec_float clamp_float = _cs149_vset_float(9.999999f);
+  __cs149_vec_int zero_integer = _cs149_vset_int(0);
+  __cs149_vec_int one_integer = _cs149_vset_int(1);
+  __cs149_vec_int count = _cs149_vset_int(0);
+
+  __cs149_mask maskAll, maskIsZero, maskIsNotZero, maskCountPositive, maskNeedClamp;
+
+  for (int i=0; i<N; i+=VECTOR_WIDTH) {
+
+    maskAll = _cs149_init_ones();
+    maskIsZero = _cs149_init_ones(0);
+
+    _cs149_vload_float(x, values+i, maskAll);
+    _cs149_vload_int(y, exponents+i, maskAll);
+    _cs149_veq_int(maskIsZero, y, zero_integer, maskAll);
+    _cs149_vstore_float(output+i, one_float, maskIsZero);
+    maskIsNotZero = _cs149_mask_not(maskIsZero);
+    _cs149_vmove_float(result, x, maskAll);
+    _cs149_vsub_int(count, y, one_integer, maskAll);
+
+    _cs149_vgt_int(maskCountPositive, count, zero_integer, maskAll);
+    while (_cs149_cntbits(maskCountPositive) > 0) {
+      _cs149_vmult_float(result, x, result, maskCountPositive);
+      _cs149_vsub_int(count, count, one_integer, maskAll);
+      _cs149_vgt_int(maskCountPositive, count, zero_integer, maskAll);
+    }
+
+    _cs149_vgt_float(maskNeedClamp, result, clamp_float, maskAll);
+    _cs149_vset_float(result, 9.999999f, maskNeedClamp);
+
+    _cs149_vstore_float(output+i, result, maskAll);
+  }
 }
 
 // returns the sum of all elements in values
