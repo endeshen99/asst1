@@ -1,3 +1,5 @@
+#include <math.h>
+#include <stdio.h>
 /*
 
   Note: This code was modified from example code
@@ -114,10 +116,17 @@ void mandelbrotSerial(
     float dx = (x1 - x0) / width;
     float dy = (y1 - y0) / height;
 
-    int offset = startRow / totalRows;
-    int stride = height / totalRows;
+    int offset = round(static_cast<float>(startRow) / static_cast<float>(totalRows));
+    int stride = round(static_cast<float>(height) / static_cast<float>(totalRows));
 
-    for (int j = 0; j < totalRows; j++) {
+    int extraRows = 0;
+    if ((totalRows * stride != height) && (offset < (height % stride))){
+      extraRows = 1;
+    }
+
+    // printf("offset: %d, stride: %d, extraRows: %d \n", offset, stride, extraRows);
+
+    for (int j = 0; j < (height / stride) + extraRows; j++) {
         for (int i = 0; i < width; ++i) {
             float x = x0 + i * dx;
             float y = y0 + (offset + j * stride) * dy;
